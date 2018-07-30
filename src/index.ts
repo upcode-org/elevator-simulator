@@ -1,4 +1,5 @@
-import app from './app'
+import app from './app';
+import { elevatorAlligator } from './elevator-alligator';
 
 const port = process.env.PORT || 3000
 
@@ -9,6 +10,8 @@ app.listen(port, (err) => {
 
   return console.log(`server is listening on ${port}`)
 })
+
+elevatorAlligator.listen();
 
 process.on('uncaughtException', (err) => {
     console.log(`Uncaught Exception: ${err}`)
