@@ -3,6 +3,8 @@ import { elevatorAlligator } from './elevator-alligator';
 
 const port = process.env.PORT || 3000
 
+elevatorAlligator.listen();
+
 app.listen(port, (err) => {
   if (err) {
     return console.log(err)
@@ -10,8 +12,6 @@ app.listen(port, (err) => {
 
   return console.log(`server is listening on ${port}`)
 })
-
-elevatorAlligator.listen();
 
 process.on('uncaughtException', (err) => {
     console.log(`Uncaught Exception: ${err}`)
