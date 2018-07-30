@@ -1,4 +1,4 @@
-#Elevator Challenge:
+Elevator Challenge
 
  
 
