@@ -25,15 +25,15 @@ class ElevatorAlligator implements interfaces.IElevatorAlligator {
 
     listen(): void {
         this.ch.prefetch(1);
-        this.ch.consume('elevator-requests', this.onMessage.bind(this));
+        this.ch.consume('elevator-requests', this.assignElevatorToRequest.bind(this));
     }
 
-    private onMessage(msg) {
-     const msgContent = JSON.parse(msg.content.toString());
-     this.assignElevatorToRequest(msgContent['requesteFloor'], msgContent['requestedDirection'])   
-    }
-
-    private assignElevatorToRequest(requestedFloor: number, requestedDirection: string): interfaces.AssignElevatorResponse { 
+    private assignElevatorToRequest(msg: Message): void { 
+        
+        const msgContent = JSON.parse(msg.content.toString());
+        const requestedFloor: number = parseInt(msgContent.requestedFloor);
+        const requestedDirection: string = msgContent.requestedDirection;
+        
         let response;
 
         const distancesOfIdleElevators = {}; // distances from requested floor
@@ -61,11 +61,12 @@ class ElevatorAlligator implements interfaces.IElevatorAlligator {
             response = { elevatorId: parseInt(elevatorId) }
         }
 
-        if(!response) response = {
-            message: 'could not assign elevator' //TO DO: use a queue and reject this msg, then retry until assigned
-        }
-
-        return response;
+        if(!response) return this.ch.reject(msg, true);
+        
+        const assignedElevator = this.state.get(response.elevatorId);
+        assignedElevator.addToFloorQueue({requestedFloor, requestedDirection});
+        return this.ch.ack(msg);
+        
     }
 
     private fullfillsPriority1(elevator: Elevator, requestedFloor: number): boolean {
