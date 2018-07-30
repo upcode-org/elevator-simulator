@@ -3,5 +3,5 @@ export interface AssignElevatorResponse {
 }
 
 export interface IElevatorAlligator {
-    assignElevatorToRequest(requestedFloor: number, requestedDirection: string): AssignElevatorResponse
+    listen(): void;
 }

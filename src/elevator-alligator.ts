@@ -1,18 +1,21 @@
 import * as interfaces from './interfaces/interfaces';
 import { Elevator } from './models/elevator';
 import {minBy} from 'lodash';
+import { Channel } from './rabbit/rabbit-setup';
 
 class ElevatorAlligator implements interfaces.IElevatorAlligator {
 
     numFloors: number;
     numElevators: number;
     state: Map<number, Elevator>;
+    ch: Channel;
 
-    constructor(numFloors: number, numElevators: number) {
+    constructor(numFloors: number, numElevators: number, ch: Channel) {
         
         this.numFloors = numFloors;
         this.numElevators = numElevators;
         this.state = new Map();
+        this.ch = ch;
 
         for (let i = 1; i <= this.numElevators; i++) {
             const elevator = new Elevator(this.numFloors);
@@ -20,7 +23,17 @@ class ElevatorAlligator implements interfaces.IElevatorAlligator {
         }
     }
 
-    assignElevatorToRequest(requestedFloor: number, requestedDirection: string): interfaces.AssignElevatorResponse { 
+    listen(): void {
+        this.ch.prefetch(1);
+        this.ch.consume('elevator-requests', this.onMessage.bind(this));
+    }
+
+    private onMessage(msg) {
+     const msgContent = JSON.parse(msg.content.toString());
+     this.assignElevatorToRequest(msgContent['requesteFloor'], msgContent['requestedDirection'])   
+    }
+
+    private assignElevatorToRequest(requestedFloor: number, requestedDirection: string): interfaces.AssignElevatorResponse { 
         let response;
 
         const distancesOfIdleElevators = {}; // distances from requested floor
@@ -76,5 +89,5 @@ class ElevatorAlligator implements interfaces.IElevatorAlligator {
 const numFloors = parseInt(process.argv[2]);
 const numElevators = parseInt(process.argv[3]);
 
-export const elevatorAlligator = new ElevatorAlligator(numFloors, numElevators);
+export const elevatorAlligator = new ElevatorAlligator(numFloors, numElevators, ch);
 console.log(elevatorAlligator.state);

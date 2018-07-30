@@ -3,14 +3,23 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const elevator_1 = require("./models/elevator");
 const lodash_1 = require("lodash");
 class ElevatorAlligator {
-    constructor(numFloors, numElevators) {
+    constructor(numFloors, numElevators, ch) {
         this.numFloors = numFloors;
         this.numElevators = numElevators;
         this.state = new Map();
+        this.ch = ch;
         for (let i = 1; i <= this.numElevators; i++) {
             const elevator = new elevator_1.Elevator(this.numFloors);
             this.state.set(i, elevator);
         }
+    }
+    listen() {
+        this.ch.prefetch(1);
+        this.ch.consume('elevator-requests', this.onMessage.bind(this));
+    }
+    onMessage(msg) {
+        const msgContent = JSON.parse(msg.content.toString());
+        this.assignElevatorToRequest(msgContent['requesteFloor'], msgContent['requestedDirection']);
     }
     assignElevatorToRequest(requestedFloor, requestedDirection) {
         let response;
@@ -54,6 +63,6 @@ class ElevatorAlligator {
 }
 const numFloors = parseInt(process.argv[2]);
 const numElevators = parseInt(process.argv[3]);
-exports.elevatorAlligator = new ElevatorAlligator(numFloors, numElevators);
+exports.elevatorAlligator = new ElevatorAlligator(numFloors, numElevators, ch);
 console.log(exports.elevatorAlligator.state);
 //# sourceMappingURL=elevator-alligator.js.map
