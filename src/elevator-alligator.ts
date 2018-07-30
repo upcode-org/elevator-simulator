@@ -1,18 +1,21 @@
 import * as interfaces from './interfaces/interfaces';
 import { Elevator } from './models/elevator';
 import {minBy} from 'lodash';
+import { Channel } from './rabbit/rabbit-setup';
 
-class ElevatorAlligator {
+class ElevatorAlligator implements interfaces.IElevatorAlligator {
 
     numFloors: number;
     numElevators: number;
     state: Map<number, Elevator>;
+    ch: Channel;
 
-    constructor(numFloors: number, numElevators: number) {
+    constructor(numFloors: number, numElevators: number, ch: Channel) {
         
         this.numFloors = numFloors;
         this.numElevators = numElevators;
         this.state = new Map();
+        this.ch = ch;
 
         for (let i = 1; i <= this.numElevators; i++) {
             const elevator = new Elevator(this.numFloors);
@@ -20,7 +23,17 @@ class ElevatorAlligator {
         }
     }
 
-    assignElevatorToRequest(requestedFloor: number, requestedDirection: string): interfaces.AssignElevatorResponse { 
+    listen(): void {
+        this.ch.prefetch(1);
+        this.ch.consume('elevator-requests', this.assignElevatorToRequest.bind(this));
+    }
+
+    private assignElevatorToRequest(msg: Message): void { 
+        
+        const msgContent = JSON.parse(msg.content.toString());
+        const requestedFloor: number = parseInt(msgContent.requestedFloor);
+        const requestedDirection: string = msgContent.requestedDirection;
+        
         let response;
 
         const distancesOfIdleElevators = {}; // distances from requested floor
@@ -48,11 +61,12 @@ class ElevatorAlligator {
             response = { elevatorId: parseInt(elevatorId) }
         }
 
-        if(!response) response = {
-            message: 'could not assign elevator' //TO DO: use a queue and reject this msg, then retry until assigned
-        }
-
-        return response;
+        if(!response) return this.ch.reject(msg, true);
+        
+        const assignedElevator = this.state.get(response.elevatorId);
+        assignedElevator.addToFloorQueue({requestedFloor, requestedDirection});
+        return this.ch.ack(msg);
+        
     }
 
     private fullfillsPriority1(elevator: Elevator, requestedFloor: number): boolean {
@@ -76,5 +90,5 @@ class ElevatorAlligator {
 const numFloors = parseInt(process.argv[2]);
 const numElevators = parseInt(process.argv[3]);
 
-export const elevatorAlligator = new ElevatorAlligator(numFloors, numElevators);
+export const elevatorAlligator = new ElevatorAlligator(numFloors, numElevators, ch);
 console.log(elevatorAlligator.state);
