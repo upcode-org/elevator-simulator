@@ -1,14 +1,14 @@
 "use strict";
 // Initial state of an elevator
 Object.defineProperty(exports, "__esModule", { value: true });
-class ElevatorState {
+class Elevator {
     constructor(numFloors) {
         this.numTrips = getRandomInt(0, 100);
         this.currentFloor = getRandomInt(1, numFloors);
         this.direction = getRandomDirection(getRandomInt(1, 3));
     }
 }
-exports.ElevatorState = ElevatorState;
+exports.Elevator = Elevator;
 function getRandomInt(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }

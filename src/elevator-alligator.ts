@@ -1,14 +1,12 @@
-import { Elevator } from "./models/elevator";
 import * as interfaces from './interfaces/interfaces';
-import { ElevatorState } from './models/elevator-state';
+import { Elevator } from './models/elevator';
 import {minBy} from 'lodash';
 
 class ElevatorAlligator {
 
     numFloors: number;
     numElevators: number;
-    state: Map<number, ElevatorState>;
-    //elevators: Array<Elevator>;
+    state: Map<number, Elevator>;
 
     constructor(numFloors: number, numElevators: number) {
         
@@ -17,8 +15,8 @@ class ElevatorAlligator {
         this.state = new Map();
 
         for (let i = 1; i <= this.numElevators; i++) {
-            const elevatorState = new ElevatorState(this.numFloors);
-            this.state.set(i, elevatorState);
+            const elevator = new Elevator(this.numFloors);
+            this.state.set(i, elevator);
         }
     }
 
@@ -27,20 +25,20 @@ class ElevatorAlligator {
 
         const distancesOfIdleElevators = {}; // distances from requested floor
 
-        for( let [elevatorId, elevatorState] of this.state ) {
+        for( let [elevatorId, elevator] of this.state ) {
             
-            if(this.fullfillsPriority1(elevatorState, requestedFloor)) {
+            if(this.fullfillsPriority1(elevator, requestedFloor)) {
                 response = { elevatorId };
                 break;
             }
 
-            if(this.fullfillsPriority2(elevatorState, requestedFloor, requestedDirection)) {
+            if(this.fullfillsPriority2(elevator, requestedFloor, requestedDirection)) {
                 response = { elevatorId };
                 break;
             }
 
-            if(elevatorState.direction === null) { // elevator is idle
-                let distanceFromRequestedFloor = Math.abs(elevatorState.currentFloor - requestedFloor);
+            if(elevator.direction === null) { // elevator is idle when direction is null
+                let distanceFromRequestedFloor = Math.abs(elevator.currentFloor - requestedFloor);
                 distancesOfIdleElevators[elevatorId] = distanceFromRequestedFloor;
             }
         }
@@ -57,18 +55,18 @@ class ElevatorAlligator {
         return response;
     }
 
-    private fullfillsPriority1(elevatorState: ElevatorState, requestedFloor: number): boolean {
+    private fullfillsPriority1(elevator: Elevator, requestedFloor: number): boolean {
         // Elevator is stopped at the requested floor
-        return (elevatorState.currentFloor === requestedFloor && elevatorState.direction === null); 
+        return (elevator.currentFloor === requestedFloor && elevator.direction === null); 
     }
     
-    private fullfillsPriority2(elevatorState: ElevatorState, requestedFloor: number, requestedDirection: string): boolean {
+    private fullfillsPriority2(elevator: Elevator, requestedFloor: number, requestedDirection: string): boolean {
         // Elevator will pass by requested floor
         // Assuming an elevator needs at least 2 floors to make a complete break
 
-        let directionsMatch = elevatorState.direction === requestedDirection;
-        let willPassByOnWayUp = (requestedFloor - elevatorState.currentFloor) > 2 && requestedDirection === 'U';
-        let willPassByOnWayDown = (elevatorState.currentFloor - requestedFloor) > 2 && requestedDirection === 'D';
+        let directionsMatch = elevator.direction === requestedDirection;
+        let willPassByOnWayUp = (requestedFloor - elevator.currentFloor) > 2 && requestedDirection === 'U';
+        let willPassByOnWayDown = (elevator.currentFloor - requestedFloor) > 2 && requestedDirection === 'D';
 
         return ((willPassByOnWayDown || willPassByOnWayUp) && directionsMatch);
     }

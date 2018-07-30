@@ -1,16 +1,33 @@
-import { EventEmitter } from "events";
-
-export class Elevator extends EventEmitter {
+export class Elevator {
     
-    id: number; 
+    numTrips: number;
+    currentFloor: number;
+    direction: string;
+    // TO DO: floor queue
 
-    constructor(id:number) {
-        super();
-        this.id = id;
+    constructor(numFloors: number) {
+        this.numTrips = getRandomInt(0, 100);
+        this.currentFloor = getRandomInt(1, numFloors); 
+        this.direction = getRandomDirection(getRandomInt(1,3));
     }
 
-    setNewState() {
-        //this.emit('updateState', newState )
-    }
+    // TO DO: Elevator Methods, these change the state of the elevator
+    // as it completes trips and picks people up, etc...
+}
 
+// Set random state of elevators, simulation is concerned with the assignment for now
+
+function getRandomInt(min: number, max: number): number {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function getRandomDirection(number: number) {
+    switch (number) {
+        case 1:
+            return 'U';
+        case 2:
+            return 'D';
+        case 3:
+            return null;
+    }
 }
