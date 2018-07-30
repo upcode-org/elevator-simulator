@@ -2,7 +2,7 @@ import * as interfaces from './interfaces/interfaces';
 import { Elevator } from './models/elevator';
 import {minBy} from 'lodash';
 
-class ElevatorAlligator {
+class ElevatorAlligator implements interfaces.IElevatorAlligator {
 
     numFloors: number;
     numElevators: number;

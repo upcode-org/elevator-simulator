@@ -11,11 +11,13 @@ export class Elevator {
         this.direction = getRandomDirection(getRandomInt(1,3));
     }
 
-    // TO DO: Elevator Methods, these change the state of the elevator
-    // as it completes trips and picks people up, etc...
+    /* TO DO: implement the elevator Methods, these change the state of the elevator
+    as it completes trips and picks people up, etc...
+    Elevator state does not change in this implementation.
+    They are being initialized with random state just to test the assignment logic.
+    When assignment logic is tested, proceed to complete this class */
 }
 
-// Set random state of elevators, simulation is concerned with the assignment for now
 
 function getRandomInt(min: number, max: number): number {
     return Math.floor(Math.random() * (max - min + 1)) + min;
